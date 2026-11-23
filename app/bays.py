@@ -3,7 +3,7 @@
 
 def bays_left(capacity, booked):
     """Return how many repair slots are still open."""
-    return max(capacity - booked, 0)
+    return max(booked - capacity, 0)
 
 
 def can_book(capacity, booked, bikes=1):
