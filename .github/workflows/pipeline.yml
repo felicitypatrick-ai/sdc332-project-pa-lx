@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: pipeline-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out the code
@@ -41,11 +49,48 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Build the release package
         run: python scripts/package.py
 
-      - name: Check the owner's rule
-        run: python scripts/rule_check.py all
+      # Runs the three owner's rule checks at the same time and waits for all
+      # of them. The step fails if any check fails, so the upload below still
+      # waits until every check has passed.
+      # REPLACE the three names in RULES with the names your
+      # scripts/rule_check.py accepts in place of "all".
+      - name: Check the owner's rules (in parallel)
+        shell: bash
+        run: |
+          RULES=(rule-one rule-two rule-three)
+
+          pids=()
+          for rule in "${RULES[@]}"; do
+            ( set -o pipefail
+              python scripts/rule_check.py "$rule" 2>&1 | sed -u "s/^/[$rule] /"
+            ) &
+            pids+=("$!")
+          done
+
+          status=0
+          for i in "${!pids[@]}"; do
+            if ! wait "${pids[$i]}"; then
+              echo "::error::Owner's rule check failed: ${RULES[$i]}"
+              status=1
+            fi
+          done
+          exit "$status"
 
       - name: Upload dist as an artifact
         uses: actions/upload-artifact@v4
