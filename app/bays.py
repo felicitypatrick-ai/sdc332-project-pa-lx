@@ -2,7 +2,7 @@
 
 
 def bays_left(capacity, booked):
-    """Return how many repair slots are still open."""
+    """Return how many repair slots are still open today."""
     return max(capacity - booked, 0)
 
 
