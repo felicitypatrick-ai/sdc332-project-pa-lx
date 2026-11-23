@@ -1,0 +1,52 @@
+name: pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee test-results.txt
+
+      - name: Write test results to the run summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Test results"
+            echo
+            echo '```'
+            if [ -f test-results.txt ]; then
+              cat test-results.txt
+            else
+              echo "No test results were produced."
+            fi
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build the release package
+        run: python scripts/package.py
+
+      - name: Upload dist as an artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bike-build-card5151
+          path: dist
+          retention-days: 5
