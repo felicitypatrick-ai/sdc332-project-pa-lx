@@ -44,6 +44,9 @@ jobs:
       - name: Build the release package
         run: python scripts/package.py
 
+      - name: Check the owner's rule
+        run: python scripts/rule_check.py all
+
       - name: Upload dist as an artifact
         uses: actions/upload-artifact@v4
         with:
