@@ -73,7 +73,7 @@ jobs:
       - name: Check the owner's rules (in parallel)
         shell: bash
         run: |
-          RULES=(rule-one rule-two rule-three)
+          RULES=(capacity limit line)
 
           pids=()
           for rule in "${RULES[@]}"; do
