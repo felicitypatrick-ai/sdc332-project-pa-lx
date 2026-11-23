@@ -1,6 +1,6 @@
 # Spoke Street Bike Repair
 
-A small booking app for a bike repair shop's daily repair slots. Course starter app for SDC332.
+A small booking app for a bike repair shop's daily repair slots, with messages. Course starter app for SDC332.
 
 - `app/`: the app code
 - `tests/`: the tests (`python -m unittest discover -s tests -v`)
